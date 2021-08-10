@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 # get data file names
-software_path = r'data/softwares_pre_merge_done' # use your path
+software_path = r'data/softwares' # use your path
 software_files = glob.glob(software_path + "/*")
 
 #----------Check result_base.csv exist -----------
@@ -61,10 +61,11 @@ software_new_df = pd.DataFrame()
 for df in software_df_list:
     software_new_df = pd.concat([software_new_df,df], axis = 0, ignore_index = True)
 
-software_new_df = pd.DataFrame(software_new_df,columns = ['software.name','logo','Company','Description','Website','main.category','Sub.cat1','Sub.cat2','in.Category','Pricing','entry.price','liked','match.score','x2.rating','overall.rating','total.reviews','recomm.rating','recomm.count','easeofuse.rating','easeofuse.count','cust.serv.rating','cust.serv.count','feature.rating','feature.count','valuemoney.rating','valuemoney.count','pros.count','cons.count','overall.1rating','overall.2rating','overall.3rating','overall.4rating','overall.5rating',
-'free.trial','subscription','free.version','free.demo','open.source','train.inperson','train.online','train.webinar','train.liverep','train.doc','support.hours','support.online','support.liverep','feature_list','location','industry','sector','employee','tel','email','contact','demo','request.pricing','freetrial','getstarted','download','document','tutorial','community','feature','github','claim','support.url','pricing.url'])
+software_new_df = pd.DataFrame(software_new_df,columns = ['software.name','logo','Company','Description','Website','main.category','Sub.cat1','Sub.cat2','Pricing','entry.price','liked','match.score','x2.rating','overall.rating','total.reviews','recomm.rating','recomm.count','easeofuse.rating','easeofuse.count','cust.serv.rating','cust.serv.count','feature.rating','feature.count','valuemoney.rating','valuemoney.count','pros.count','cons.count','overall.1rating','overall.2rating','overall.3rating','overall.4rating','overall.5rating',
+'free.trial','subscription','free.version','free.demo','open.source','train.inperson','train.online','train.webinar','train.liverep','train.doc','support.hours','support.online','support.liverep','feature_list','location','industry','sector','employee','tel','email','contact','demo','freetrial','getstarted','download','document','tutorial','community','feature','github','claim','support.url','pricing.url'])
 software_new_df = software_new_df.drop_duplicates(subset=['software.name']).set_index("software.name",drop=False)
 
+unmodified_columns = {'software.name','logo','Company','Description','Website','main.category','Sub.cat1','Sub.cat2','Pricing','entry.price','subscription','free.version','free.demo','open.source','train.inperson','train.online','train.webinar','train.liverep','train.doc','support.hours','support.online','support.liverep','feature_list','location','industry','sector','employee','tel','email','contact','demo','freetrial','getstarted','download','document','tutorial','community','feature','github'}
 software_new_dict = software_new_df.to_dict('records')
 for row in software_new_dict:
     row['software.name'] = str(row['software.name']).rstrip()
@@ -78,8 +79,9 @@ for row in software_new_dict:
         software_old_base_dict[row['software.name']] = row
     else:
         for col,val in row.items():
+            if col in unmodified_columns and str(software_old_base_dict[row['software.name']][col])!='nan':
+                continue
             if str(val)!='nan':
-                print(val)
                 software_old_base_dict[row['software.name']][col] = val
     
 #--------Check update folder files -------------------------

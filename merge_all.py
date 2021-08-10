@@ -23,13 +23,11 @@ else:
 review_calculation = pd.DataFrame(review_df,columns = ['software.name','overall.rating','feature','pros','cons','recomm','cust.serv','easeofuse','valuemoney','total.reviews'])
 review_calculation['total.reviews'] = 0
 
-overall_rating_1 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: (x<=1).sum()}).reset_index('software.name',drop=False).to_dict('index')
-overall_rating_2 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: ((x>1).sum()-(x>2).sum())}).reset_index('software.name',drop=False).to_dict('index')
-overall_rating_3 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: ((x>2).sum()-(x>3).sum())}).reset_index('software.name',drop=False).to_dict('index')
-overall_rating_4 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: ((x>3).sum()-(x>4).sum())}).reset_index('software.name',drop=False).to_dict('index')
-overall_rating_5 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: (x>4).sum()}).reset_index('software.name',drop=False).to_dict('index')
-
-
+overall_rating_1 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: (x<=1).sum()}).to_dict('index')
+overall_rating_2 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: ((x>1).sum()-(x>2).sum())}).to_dict('index')
+overall_rating_3 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: ((x>2).sum()-(x>3).sum())}).to_dict('index')
+overall_rating_4 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: ((x>3).sum()-(x>4).sum())}).to_dict('index')
+overall_rating_5 = review_calculation.pivot_table(index = ["software.name"], values=['overall.rating'],aggfunc={'overall.rating':lambda x: (x>4).sum()}).to_dict('index')
 
 review_rating = review_calculation.pivot_table(index = ["software.name"],values=["overall.rating","recomm","feature","easeofuse","cust.serv",'valuemoney'],
             aggfunc={"overall.rating":"mean","recomm":"mean","feature":"mean","easeofuse":"mean","cust.serv":"mean","valuemoney":"mean"})
@@ -61,6 +59,14 @@ for row in result_dict:
         row['overall.5rating'] = overall_rating_5[software_name]['overall.rating']
 result_df = pd.DataFrame.from_dict(result_dict)
 
+result_df['overall.1rating'] = (result_df['overall.1rating']) / (result_df['total.reviews'])
+result_df['overall.2rating'] = (result_df['overall.2rating']) / (result_df['total.reviews'])
+result_df['overall.3rating'] = (result_df['overall.3rating']) / (result_df['total.reviews'])
+result_df['overall.4rating'] = (result_df['overall.4rating']) / (result_df['total.reviews'])
+result_df['overall.5rating'] = (result_df['overall.5rating']) / (result_df['total.reviews'])
+result_df = result_df.round({'overall.1rating':1,'overall.2rating':1,'overall.3rating':1,'overall.4rating':1,'overall.5rating':1 })
+
+#result_df = result_df.drop(['level_0','index'],axis = 0)
 
 outPutPath = Path('data/base_data/result_base.csv')
 result_df.to_csv(outPutPath,index=False)

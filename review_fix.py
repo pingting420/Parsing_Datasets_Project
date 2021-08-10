@@ -3,7 +3,7 @@ import glob
 import os
 import numpy as np
 
-review_path = r'data/reviews_pre_merge_done'
+review_path = r'data/reviews'
 review_files = glob.glob(review_path + "/*")
 
 review_df_list = []

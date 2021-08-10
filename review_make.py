@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 
-reviews_path = r'data/reviews_pre_merge_done' # use your path
+reviews_path = r'data/reviews' # use your path
 review_files = glob.glob(reviews_path + "/*")
 
 review_df_list = []
