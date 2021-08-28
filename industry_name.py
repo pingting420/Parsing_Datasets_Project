@@ -2,30 +2,37 @@
 import pandas as pd
 import numpy as np
 import json
+import sys
 
 
 class CompetitorAnalyst:
 
     def __init__(self, result_path, review_path):
-        self.result_base = pd.read_csv(result_path)
-        self.review_base = pd.read_csv(review_path)
+        self.result_base = pd.read_csv(result_path, low_memory=False)
+        self.review_base = pd.read_csv(review_path, low_memory=False)
         return
 
     def analyse_competitor(self, val, kind='business'):
+        if kind not in ['business', 'job_title']:
+            raise ValueError('unsupported:' + kind)
         if val in self.result_base['software.name'].values.tolist():
             category = self.result_base[self.result_base['software.name'] == val]['Sub.cat1'].values[0]
-            return self._analyse_cat(category, kind)
+            self._analyse_cat(category, kind)
+            return
         elif val in self.result_base['Sub.cat1'].values.tolist():
-            return self._analyse_cat(val, kind)
+            self._analyse_cat(val, kind)
+            return
         else:
-            return BaseException('wrong input')
+            raise ValueError('wrong input:' + val)
 
     def _analyse_cat(self, category, kind='business'):
         cat_competitions = {}
         competitors = self.result_base.loc[self.result_base['Sub.cat1'] == category]['software.name'].unique()
         for software in competitors:
             cat_competitions[software] = self._analyse_software_in_review(software, kind)
-        return json.dumps(cat_competitions, indent=4, separators=(',', ': '))
+        with open(analyse_result_path, 'w') as f:
+            json.dump(cat_competitions, f, indent=4, separators=(',', ': '))
+        return
 
     def _analyse_software_in_review(self, software, kind='business'):
         software_review = self.review_base.loc[self.review_base['software.name'] == software].copy()
@@ -42,14 +49,30 @@ class CompetitorAnalyst:
         kind_of_software_review = software_review[['software.name', kind]].fillna('NaN').groupby(kind).count()
         counters = kind_of_software_review['software.name'].sum()
         array_kind_of_software = np.array(kind_of_software_review['software.name'])
-        return pd.Series(np.around(np.true_divide(np.multiply(array_kind_of_software, 100), counters), 4),
-                         index=kind_of_software_review.index).apply(
-            lambda xx: "%.2f%%" % xx).to_dict()
+        a = pd.Series(np.around(np.true_divide(array_kind_of_software, counters), 2),
+                         index=kind_of_software_review.index).to_dict()
+        raw_total_review = self.result_base[self.result_base['software.name']==software]['total.reviews'].values[0]
+        total_review = int(raw_total_review) if pd.notna(raw_total_review) else raw_total_review
+        a['total.reviews'] = total_review
+        return a
+
+
+result_base_path = r'/usr/datasets/merging_datasets/data/base_data/result_base.csv'
+review_base_path = r'/usr/datasets/merging_datasets/data/base_data/review_base.csv'
+analyse_cat = 'business'
+analyse_result_path = r'/usr/datasets/merging_datasets/data/base_data/industry_name.txt'
 
 
 def main():
-    com = CompetitorAnalyst('./result_base.csv', './review_base.csv')
-    print(com.analyse_competitor('FigPii', 'job_title'))
+    analyst_ins = CompetitorAnalyst(result_base_path, review_base_path)
+
+    analyst_target = sys.argv[1]
+    try:
+        analyst_ins.analyse_competitor(analyst_target, analyse_cat)
+    except ValueError as e:
+        print(e)
+    else:
+        print("complete")
 
 
 if __name__ == '__main__':
